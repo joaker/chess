@@ -15,7 +15,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 32px;
   
     &.white {
       background-color: #f0d9b5;
@@ -26,6 +25,9 @@
     }
   
     .piece {
+      width: 80%;
+      height: 80%;
+      pointer-events: none;
       user-select: none;
     }
   }

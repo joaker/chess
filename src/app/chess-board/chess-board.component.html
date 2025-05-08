@@ -1,14 +1,16 @@
 <div class="board">
-    <div
-      *ngFor="let row of board; let rowIndex = index"
-      class="row"
-    >
+    <div *ngFor="let row of board; let rowIndex = index" class="row">
       <div
         *ngFor="let piece of row; let colIndex = index"
         class="tile"
         [ngClass]="getTileColor(rowIndex, colIndex)"
       >
-        <span class="piece">{{ piece }}</span>
+        <img
+          *ngIf="getImagePath(piece)"
+          [src]="getImagePath(piece)!"
+          alt=""
+          class="piece"
+        />
       </div>
     </div>
   </div>
