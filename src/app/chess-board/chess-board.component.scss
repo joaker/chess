@@ -1,0 +1,32 @@
+.board {
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #333;
+    width: 400px;
+  }
+  
+  .row {
+    display: flex;
+  }
+  
+  .tile {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+  
+    &.white {
+      background-color: #f0d9b5;
+    }
+  
+    &.black {
+      background-color: #b58863;
+    }
+  
+    .piece {
+      user-select: none;
+    }
+  }
+  
