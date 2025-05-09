@@ -8,7 +8,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "react-scripts build && rm -rf dist/chess/* && cp -r build/* ./dist/chess/ && cp ./secrets/sftp-config.json ./dist/",
+    "build": "ng build && mv dist/browser dist/chess",
+    "build-ref": "react-scripts build && rm -rf dist/chess/* && cp -r build/* ./dist/chess/ && cp ./secrets/sftp-config.json ./dist/",
 
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

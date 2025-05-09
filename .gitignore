@@ -44,3 +44,8 @@ Thumbs.db
 
 # secrets
 /secrets
+# production
+/build
+/dist
+dist
+/dist/chess/*
