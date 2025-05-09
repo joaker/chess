@@ -8,14 +8,20 @@ export interface Piece {
   hasMoved?: boolean; // for castling, en passant
 }
 
+interface Position {
+  row: number;
+  col: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class GameStateService {
   board: (Piece | null)[][] = [];
   currentPlayer: Player = 'white';
-  selectedPiece: { row: number; col: number } | null = null;
+  selectedPiece: Position | null = null;
   validMoves: { row: number; col: number }[] = [];
+  enPassantSquare: Position | null = null;
 
   constructor() {
     this.resetBoard();
@@ -61,6 +67,9 @@ export class GameStateService {
   movePiece(targetRow: number, targetCol: number) {
     if (!this.selectedPiece) return;
 
+    const from = this.selectedPiece;
+    const to = { row: targetRow, col: targetCol };
+
     const { row, col } = this.selectedPiece;
     const piece = this.board[row][col];
     if (!piece) return;
@@ -69,12 +78,44 @@ export class GameStateService {
     if (!isValid) return;
 
     // Move piece
+
+    if (this.isEnPassantCapture(from, to)) {
+      const capturedRow = this.currentPlayer == 'white' ? targetRow + 1 : targetRow - 1;
+      this.board[capturedRow][targetCol] = null;
+    }
+
     this.board[targetRow][targetCol] = { ...piece, hasMoved: true };
     this.board[row][col] = null;
+
+    this.trackEnPassant(from, to, piece)
 
     this.currentPlayer = this.currentPlayer === 'white' ? 'black' : 'white';
     this.selectedPiece = null;
     this.validMoves = [];
+  }
+
+  trackEnPassant(from: Position, to: Position, piece: Piece): void {
+
+    if(piece.type !== 'pawn'){
+      this.enPassantSquare = null;
+      return;
+    }
+
+    const enPassantPawnRow = piece.player === 'white' ? 4 : 3;
+    const enPassantCaptureRow = piece.player === 'white' ? 5 : 2;
+
+    if (
+      (piece.player === 'white' && from.row === 6 && to.row === 4) ||
+      (piece.player === 'black' && from.row === 1 && to.row === 3)
+    ) {
+      // Mark square behind pawn
+      this.enPassantSquare = {
+        row: enPassantCaptureRow,
+        col: from.col
+      };
+    } else {
+      this.enPassantSquare = null;
+    }
   }
 
   private calculateValidMoves(row: number, col: number): { row: number; col: number }[] {
@@ -150,6 +191,21 @@ export class GameStateService {
       }
     }
   }
+
+  private isEnPassantCapture(from: Position, to: Position): boolean {
+    const piece = this.board[from.row][from.col];
+    const notAPawn = piece?.type !== 'pawn';
+    const hasActiveEnPassant = !!this.enPassantSquare;
+    if (notAPawn || !hasActiveEnPassant) return false;
+
+    
+    const epRow = this.enPassantSquare?.row ?? -1;
+    const epColumn = this.enPassantSquare?.col ?? -1;
+
+    const targettingEnPassantSquare = to.row === epRow && to.col === epColumn;
+
+    return targettingEnPassantSquare;
+  }
   
   private addStepMoves(
     piece: Piece,
@@ -170,7 +226,7 @@ export class GameStateService {
     }
   }
 
-  addPawnMoves(
+  private addPawnMoves(
     piece: Piece,
     row: number,
     col: number,
@@ -189,7 +245,10 @@ export class GameStateService {
     for (let dc of [-1, 1]) {
       const captureCol = col + dc;
       const target = this.board[nextRow]?.[captureCol];
-      if (target && target.player !== piece.player) {
+
+      const hasNormalCapture =  target && target.player !== piece.player;
+      const hasEnPassantCapture = this.enPassantSquare && this.enPassantSquare.row === nextRow && this.enPassantSquare.col === captureCol;
+      if (hasNormalCapture || hasEnPassantCapture) {
         moves.push({ row: nextRow, col: captureCol });
       }
     }
