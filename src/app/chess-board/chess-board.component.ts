@@ -36,7 +36,9 @@ export class ChessBoardComponent{
     const pieceType = piece.type;
     const pieceColor = piece.player === 'white' ? 'w' : 'b';
 
-    const pieceKey = `${pieceColor}${pieceType[0].toUpperCase()}`;
+
+    const keyId = pieceType === 'knight' ? 'N' : pieceType[0].toUpperCase();
+    const pieceKey = `${pieceColor}${keyId}`;
 
     return piece ? `assets/pieces/${pieceKey}.svg` : null;
   }

@@ -83,30 +83,118 @@ export class GameStateService {
 
     const moves: { row: number; col: number }[] = [];
 
-    if (piece.type === 'pawn') {
-      const dir = piece.player === 'white' ? -1 : 1;
-      const nextRow = row + dir;
-      if (this.inBounds(nextRow, col) && this.board[nextRow][col] === null) {
-        moves.push({ row: nextRow, col });
-        // first move 2-step
-        if (!piece.hasMoved && this.board[nextRow + dir]?.[col] === null) {
-          moves.push({ row: nextRow + dir, col });
-        }
+    switch (piece.type) {
+        case 'pawn':
+          this.addPawnMoves(piece, row, col, moves);
+          break;
+        case 'rook':
+          this.addSlidingMoves(piece, row, col, moves, [
+            [1, 0], [-1, 0], [0, 1], [0, -1]
+          ]);
+          break;
+        case 'bishop':
+          this.addSlidingMoves(piece, row, col, moves, [
+            [1, 1], [1, -1], [-1, 1], [-1, -1]
+          ]);
+          break;
+        case 'queen':
+          this.addSlidingMoves(piece, row, col, moves, [
+            [1, 0], [-1, 0], [0, 1], [0, -1],
+            [1, 1], [1, -1], [-1, 1], [-1, -1]
+          ]);
+          break;
+        case 'king':
+          this.addStepMoves(piece, row, col, moves, [
+            [1, 0], [-1, 0], [0, 1], [0, -1],
+            [1, 1], [1, -1], [-1, 1], [-1, -1]
+          ]);
+          break;
+        case 'knight':
+          this.addStepMoves(piece, row, col, moves, [
+            [2, 1], [1, 2], [-1, 2], [-2, 1],
+            [-2, -1], [-1, -2], [1, -2], [2, -1]
+          ]);
+          break;
       }
-      // capture
-      for (let dc of [-1, 1]) {
-        const captureCol = col + dc;
-        const target = this.board[nextRow]?.[captureCol];
-        if (target && target.player !== piece.player) {
-          moves.push({ row: nextRow, col: captureCol });
-        }
-      }
-    }
+      
+      
 
     // Add other piece logic here (rook, bishop, etc.)
 
     return moves.filter(({ row, col }) => this.inBounds(row, col));
   }
+
+  private addSlidingMoves(
+    piece: Piece,
+    row: number,
+    col: number,
+    moves: { row: number; col: number }[],
+    directions: [number, number][]
+  ) {
+    for (let [dr, dc] of directions) {
+      let r = row + dr;
+      let c = col + dc;
+  
+      while (this.inBounds(r, c)) {
+        const target = this.board[r][c];
+        if (!target) {
+          moves.push({ row: r, col: c });
+        } else {
+          if (target.player !== piece.player) {
+            moves.push({ row: r, col: c });
+          }
+          break; // blocked
+        }
+        r += dr;
+        c += dc;
+      }
+    }
+  }
+  
+  private addStepMoves(
+    piece: Piece,
+    row: number,
+    col: number,
+    moves: { row: number; col: number }[],
+    deltas: [number, number][]
+  ) {
+    for (let [dr, dc] of deltas) {
+      const r = row + dr;
+      const c = col + dc;
+      if (!this.inBounds(r, c)) continue;
+  
+      const target = this.board[r][c];
+      if (!target || target.player !== piece.player) {
+        moves.push({ row: r, col: c });
+      }
+    }
+  }
+
+  addPawnMoves(
+    piece: Piece,
+    row: number,
+    col: number,
+    moves: { row: number; col: number }[]
+  ) {
+    const dir = piece.player === 'white' ? -1 : 1;
+    const nextRow = row + dir;
+    if (this.inBounds(nextRow, col) && this.board[nextRow][col] === null) {
+      moves.push({ row: nextRow, col });
+      // first move 2-step
+      if (!piece.hasMoved && this.board[nextRow + dir]?.[col] === null) {
+        moves.push({ row: nextRow + dir, col });
+      }
+    }
+    // capture
+    for (let dc of [-1, 1]) {
+      const captureCol = col + dc;
+      const target = this.board[nextRow]?.[captureCol];
+      if (target && target.player !== piece.player) {
+        moves.push({ row: nextRow, col: captureCol });
+      }
+    }
+  }
+  
 
   private inBounds(row: number, col: number) {
     return row >= 0 && row < 8 && col >= 0 && col < 8;
