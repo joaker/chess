@@ -1,10 +1,15 @@
 {
   "name": "chess",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "homepage": "https://johnoakley.com/chess",
+  "description": "A chess game built with Angular",
+  "author": "John Oakley <jooakley@gmail.com>",
+
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "react-scripts build && rm -rf dist/chess/* && cp -r build/* ./dist/chess/ && cp ./secrets/sftp-config.json ./dist/",
+
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
