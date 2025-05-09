@@ -55,6 +55,10 @@ export class ChessBoardComponent{
     }
 
   }
+
+  isValidMove(rowIndex: number, colIndex: number): boolean {
+    return this.game?.validMoves?.some(m => m.row === rowIndex && m.col === colIndex) ?? false;
+  }
 }
 
 

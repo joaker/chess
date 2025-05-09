@@ -13,6 +13,10 @@
           alt=""
           class="piece"
         />
+        <div
+        *ngIf="isValidMove(rowIndex, colIndex)"
+        class="dot"
+      ></div>
       </div>
     </div>
   </div>
