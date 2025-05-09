@@ -1,0 +1,11 @@
+<div class="grid">
+    <div *ngFor="let row of tiles" class="row">
+      <div
+        *ngFor="let tile of row"
+        class="tile"
+        [ngClass]="tile.color"
+        (click)="toggleTile(tile)"
+      ></div>
+    </div>
+  </div>
+  

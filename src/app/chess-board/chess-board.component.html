@@ -1,13 +1,15 @@
 <div class="board">
-    <div *ngFor="let row of board; let rowIndex = index" class="row">
+    <div *ngFor="let row of game.board; let rowIndex = index" class="row">
       <div
-        *ngFor="let piece of row; let colIndex = index"
+        *ngFor="let tile of row; let colIndex = index"
         class="tile"
-        [ngClass]="getTileColor(rowIndex, colIndex)"
+        [ngClass]="getTileClass(rowIndex, colIndex)"
+        (click)="activateTile(rowIndex, colIndex)"
+
       >
         <img
-          *ngIf="getImagePath(piece)"
-          [src]="getImagePath(piece)!"
+          *ngIf="getImagePath(rowIndex, colIndex)"
+          [src]="getImagePath(rowIndex, colIndex)!"
           alt=""
           class="piece"
         />

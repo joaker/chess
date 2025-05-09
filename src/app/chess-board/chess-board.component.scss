@@ -23,6 +23,10 @@
     &.black {
       background-color: #b58863;
     }
+
+    &.active {
+      background-color: #ffeb3b;
+    }
   
     .piece {
       width: 80%;
