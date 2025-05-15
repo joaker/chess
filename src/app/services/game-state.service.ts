@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 export type Player = 'white' | 'black';
 export type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
@@ -22,6 +22,11 @@ export class GameStateService {
   selectedPiece: Position | null = null;
   validMoves: { row: number; col: number }[] = [];
   enPassantSquare: Position | null = null;
+
+
+
+  promotionPending = signal<{ position: Position; player: Player } | null>(null);
+
 
   constructor() {
     this.resetBoard();
@@ -88,6 +93,7 @@ export class GameStateService {
     this.board[row][col] = null;
 
     this.trackEnPassant(from, to, piece)
+    this.trackPawnPromotion(from, to, piece);
 
     // 🏰 Castling detection
     const isKing = piece.type === 'king';
@@ -123,6 +129,46 @@ export class GameStateService {
     }
 
   }
+
+  trackPawnPromotion(from: Position, to: Position, piece: Piece): void {
+
+    const promotionRow = piece.player === 'white' ? 0 : 7;
+    // const promotionRow = piece.player === 'white' ? 4 : 3; // useful for testing promotions
+
+    const isPromotion = piece.type === 'pawn' && to.row === promotionRow;
+
+    if (isPromotion) {
+      this.promotionPending.set({ position: { ...to }, player: piece.player });
+      return; // stop here and wait for UI to call promotePawn()
+    }
+    this.promotionPending.set(null);
+  }
+
+  promotePawn(type: PieceType) {
+    const promotion = this.promotionPending();
+  
+    // If no promotion is pending, exit early
+    if (!promotion) return;
+  
+    // Destructure the target position from the promotion object
+    const { row, col } = promotion.position;
+    const piece = this.board[row][col];
+  
+    // Ensure there's a pawn at the promotion square before continuing
+    if (!piece || piece.type !== 'pawn') return;
+  
+    // Replace the pawn with the selected piece type, preserving player ownership
+    this.board[row][col] = {
+      type,
+      player: piece.player,
+      hasMoved: true
+    };
+  
+    // Clear the promotion signal so UI and logic can proceed
+    this.promotionPending.set(null);
+  
+  }
+  
 
   trackEnPassant(from: Position, to: Position, piece: Piece): void {
 

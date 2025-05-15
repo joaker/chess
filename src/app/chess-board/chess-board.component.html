@@ -1,23 +1,22 @@
-<div class="board">
+<div class="chess-board-wrapper">
+  <div class="board">
     <div *ngFor="let row of game.board; let rowIndex = index" class="row">
-      <div
-        *ngFor="let tile of row; let colIndex = index"
-        class="tile"
-        [ngClass]="getTileClass(rowIndex, colIndex)"
-        (click)="activateTile(rowIndex, colIndex)"
-
-      >
-        <img
-          *ngIf="getImagePath(rowIndex, colIndex)"
-          [src]="getImagePath(rowIndex, colIndex)!"
-          alt=""
-          class="piece"
-        />
-        <div
-        *ngIf="isValidMove(rowIndex, colIndex)"
-        class="dot"
-      ></div>
+      <div *ngFor="let tile of row; let colIndex = index" class="tile" [ngClass]="getTileClass(rowIndex, colIndex)"
+        (click)="activateTile(rowIndex, colIndex)">
+        <img *ngIf="getImagePath(rowIndex, colIndex)" [src]="getImagePath(rowIndex, colIndex)!" alt="" class="piece" />
+        <div *ngIf="isValidMove(rowIndex, colIndex)" class="dot"></div>
       </div>
     </div>
   </div>
-  
+</div>
+
+<!-- Promotion Modal -->
+<div *ngIf="showPromotionModal" class="promotion-modal-backdrop">
+  <div class="promotion-modal">
+    <p>Promote to:</p>
+    <div class="promotion-options">
+      <img *ngFor="let type of promotionChoices" [src]="'assets/pieces/' + promotionPrefix + typeToPrefix[type] + '.svg'"
+        [alt]="type" (click)="onPromotionSelected(type)" class="promotion-piece" />
+    </div>
+  </div>
+</div>

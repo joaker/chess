@@ -1,14 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, effect, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GameStateService, Piece } from '../services/game-state.service';
+import { GameStateService, Piece, PieceType, Player } from '../services/game-state.service';
 
-type Tile = {
-  row: number;
-  col: number;
-  color: 'black' | 'white';
-  piece: Piece;
-  owner: 'white' | 'black' | null;
-};
 
 @Component({
   selector: 'app-chess-board',
@@ -16,8 +9,40 @@ type Tile = {
   styleUrls: ['./chess-board.component.scss'],
   imports: [CommonModule],
 })
-export class ChessBoardComponent{
-  constructor(public game: GameStateService) {}
+export class ChessBoardComponent {
+  showPromotionModal = false;
+  promotionPlayer: Player | null = null;
+  get promotionPrefix(): string | null {
+    if (!this.promotionPlayer) return null;
+    return this.promotionPlayer === 'white' ? 'w' : 'b';
+  }
+  promotionDetails: { row: number; col: number; player: Player } | null = null;
+  promotionChoices: PieceType[] = ['knight', 'bishop', 'rook', 'queen'];
+
+  typeToPrefix: Record<PieceType, string> = {
+    pawn: 'P',
+    knight: 'N',
+    bishop: 'B',
+    rook: 'R',
+    queen: 'Q',
+    king: 'K',
+  };
+
+  constructor(public game: GameStateService) {
+    effect(() => {
+      const promo = this.game.promotionPending();
+      if (promo) {
+        this.promotionPlayer = promo.player;
+        this.showPromotionModal = true;
+      }
+    });
+  }
+
+  onPromotionSelected(pieceType: PieceType) {
+    this.game.promotePawn(pieceType);
+    this.showPromotionModal = false;
+    this.promotionDetails = null;
+  }
 
   getTileColor(row: number, col: number): string {
     return (row + col) % 2 === 0 ? 'white' : 'black';
@@ -31,7 +56,7 @@ export class ChessBoardComponent{
 
     const piece = this.game.board[rowIndex][colIndex];
 
-    if(!piece) return null;
+    if (!piece) return null;
 
     const pieceType = piece.type;
     const pieceColor = piece.player === 'white' ? 'w' : 'b';
@@ -60,5 +85,3 @@ export class ChessBoardComponent{
     return this.game?.validMoves?.some(m => m.row === rowIndex && m.col === colIndex) ?? false;
   }
 }
-
-
