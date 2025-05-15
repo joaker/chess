@@ -101,14 +101,12 @@ export class GameStateService {
       return;
     }
 
-    const enPassantPawnRow = piece.player === 'white' ? 4 : 3;
+    const initialPawnRow = piece.player === 'white' ? 6 : 1;
     const enPassantCaptureRow = piece.player === 'white' ? 5 : 2;
+    const enPassantPawnRow = piece.player === 'white' ? 4 : 3;
 
-    if (
-      (piece.player === 'white' && from.row === 6 && to.row === 4) ||
-      (piece.player === 'black' && from.row === 1 && to.row === 3)
-    ) {
-      // Mark square behind pawn
+    if (from.row === initialPawnRow && to.row === enPassantPawnRow) {
+      // Mark square behind pawn as en passant capture target
       this.enPassantSquare = {
         row: enPassantCaptureRow,
         col: from.col
@@ -118,7 +116,39 @@ export class GameStateService {
     }
   }
 
-  private calculateValidMoves(row: number, col: number): { row: number; col: number }[] {
+  private isInCheck(player: Player): boolean {
+    const kingPos = this.findKing(player);
+    if (!kingPos) return false;
+  
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = this.board[r][c];
+        if (piece && piece.player !== player) {
+          const enemyMoves = this.calculateValidMoves(r, c, true); // allow unsafe
+          if (enemyMoves.some(m => m.row === kingPos.row && m.col === kingPos.col)) {
+            return true;
+          }
+        }
+      }
+    }
+  
+    return false;
+  }
+  
+  private findKing(player: Player): Position | null {
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = this.board[r][c];
+        if (piece?.type === 'king' && piece.player === player) {
+          return { row: r, col: c };
+        }
+      }
+    }
+    return null;
+  }
+  
+
+  private calculateValidMoves(row: number, col: number, ignoreKingSafety = false): Position[] {
     const piece = this.board[row][col];
     if (!piece) return [];
 
@@ -156,13 +186,35 @@ export class GameStateService {
             [-2, -1], [-1, -2], [1, -2], [2, -1]
           ]);
           break;
-      }
+    }
       
-      
+    const filteredMoves =  moves.filter(({ row, col }) => this.inBounds(row, col));
 
-    // Add other piece logic here (rook, bishop, etc.)
+    if(ignoreKingSafety) return filteredMoves;
 
-    return moves.filter(({ row, col }) => this.inBounds(row, col));
+    // Filter out moves that would leave the king in check
+    return filteredMoves.filter(move => {
+      const simulated = this.simulateMove({ from: { row, col }, to: move });
+      return !simulated.isInCheck;
+    });
+  }
+
+  private simulateMove(move: { from: Position; to: Position }) {
+    const { from, to } = move;
+    const backup = JSON.parse(JSON.stringify(this.board));
+    const piece = this.board[from.row][from.col];
+
+    if (!piece) return { isInCheck: false };
+
+    const captured = this.board[to.row][to.col];
+  
+    this.board[to.row][to.col] = piece;
+    this.board[from.row][from.col] = null;
+  
+    const inCheck = this.isInCheck(piece!.player);
+  
+    this.board = backup; // restore board
+    return { isInCheck: inCheck };
   }
 
   private addSlidingMoves(
