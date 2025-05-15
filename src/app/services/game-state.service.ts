@@ -89,6 +89,23 @@ export class GameStateService {
 
     this.trackEnPassant(from, to, piece)
 
+    // 🏰 Castling detection
+    const isKing = piece.type === 'king';
+    const isKingsideCastle = isKing && col === 4 && to.col === 6;
+    const isQueensideCastle = isKing && col === 4 && to.col === 2;
+
+    // 🏰 Move rook during castling
+    if (isKingsideCastle || isQueensideCastle) {
+      const rookStartCol = isKingsideCastle ? 7 : 0;
+      const rookEndCol = isKingsideCastle ? 5 : 3;
+      const rook = this.board[targetRow][rookStartCol];
+
+      if (rook && rook.type === 'rook') {
+        this.board[targetRow][rookEndCol] = { ...rook, hasMoved: true };
+        this.board[targetRow][rookStartCol] = null;
+      }
+    }
+
     this.currentPlayer = this.currentPlayer === 'white' ? 'black' : 'white';
     this.selectedPiece = null;
     this.validMoves = [];
@@ -207,6 +224,9 @@ export class GameStateService {
             [1, 0], [-1, 0], [0, 1], [0, -1],
             [1, 1], [1, -1], [-1, 1], [-1, -1]
           ]);
+          if (!ignoreKingSafety) { // don't check castling if ignoring king safety to avoid infinite loop
+            this.addCastlingMoves(piece, row, col, moves);
+          }
           break;
         case 'knight':
           this.addStepMoves(piece, row, col, moves, [
@@ -243,6 +263,56 @@ export class GameStateService {
   
     this.board = backup; // restore board
     return { isInCheck: inCheck };
+  }
+
+  private canCastle(player: Player, side: 'kingside' | 'queenside'): boolean {
+    const row = player === 'white' ? 7 : 0;
+    const kingCol = 4;
+  
+    // No castling if king is in check
+    if (this.isInCheck(player)) return false;
+
+    // No castling if king has moved
+    if (this.board[row][kingCol]?.hasMoved) return false;
+  
+
+    // No castling if the rook has moved
+    const rookCol = side === 'kingside' ? 7 : 0;
+    const rook = this.board[row][rookCol];
+    if (!rook || rook.type !== 'rook' || rook.player !== player || rook.hasMoved) return false;
+  
+    // No castling if the path is blocked by pieces
+    const pathCols = side === 'kingside' ? [5, 6] : [1, 2, 3];
+    for (let col of pathCols) {
+      if (this.board[row][col] !== null) return false;
+    }
+  
+    // No castling if the king would move through check
+    const dangerCols = side === 'kingside' ? [4, 5, 6] : [4, 3, 2];
+    for (let col of dangerCols) {
+      const sim = this.simulateMove({ from: { row, col: 4 }, to: { row, col } });
+      if (sim.isInCheck) return false;
+    }
+  
+    return true;
+  }
+  
+
+  private addCastlingMoves(piece: Piece, row: number, col: number, moves: Position[]) {
+    if (piece.hasMoved || this.isInCheck(piece.player)) return;
+  
+    const backRank = piece.player === 'white' ? 7 : 0;
+  
+    const canCastleKingside = this.canCastle(piece.player, 'kingside');
+    const canCastleQueenside = this.canCastle(piece.player, 'queenside');
+  
+    if (canCastleKingside) {
+      moves.push({ row: backRank, col: 6 }); // g1/g8
+    }
+  
+    if (canCastleQueenside) {
+      moves.push({ row: backRank, col: 2 }); // c1/c8
+    }
   }
 
   private addSlidingMoves(
