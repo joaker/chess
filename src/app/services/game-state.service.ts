@@ -92,6 +92,19 @@ export class GameStateService {
     this.currentPlayer = this.currentPlayer === 'white' ? 'black' : 'white';
     this.selectedPiece = null;
     this.validMoves = [];
+
+
+    if (this.isCheckmate(this.currentPlayer)) {
+      console.log(`${this.currentPlayer} is in checkmate!`);
+      // Handle checkmate logic here
+      return;
+    }
+    if (this.isInCheck(this.currentPlayer)) {
+      console.log(`${this.currentPlayer} is in check!`);
+      // Handle check logic here
+      return;
+    }
+
   }
 
   trackEnPassant(from: Position, to: Position, piece: Piece): void {
@@ -114,6 +127,21 @@ export class GameStateService {
     } else {
       this.enPassantSquare = null;
     }
+  }
+
+
+  private isCheckmate(player: Player): boolean {
+    if (!this.isInCheck(player)) return false;
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = this.board[r][c];
+        if (piece?.player === player) {
+          const legalMoves = this.calculateValidMoves(r, c);
+          if (legalMoves.length > 0) return false;
+        }
+      }
+    }
+    return true;
   }
 
   private isInCheck(player: Player): boolean {
