@@ -122,6 +122,12 @@ export class GameStateService {
       // Handle checkmate logic here
       return;
     }
+
+    if(this.isStalemate(this.currentPlayer)) {
+      console.log(`${this.currentPlayer} is in stalemate!`);
+      // Handle stalemate logic here
+    }
+
     if (this.isInCheck(this.currentPlayer)) {
       console.log(`${this.currentPlayer} is in check!`);
       // Handle check logic here
@@ -191,6 +197,23 @@ export class GameStateService {
       this.enPassantSquare = null;
     }
   }
+
+  private isStalemate(player: Player): boolean {
+    if (this.isInCheck(player)) return false;
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = this.board[r][c];
+        if (piece?.player === player) {
+          const legalMoves = this.calculateValidMoves(r, c);
+          if (legalMoves.length > 0) return false;
+        }
+      
+      
+      }
+    }
+    return true;
+  }
+
 
 
   private isCheckmate(player: Player): boolean {
