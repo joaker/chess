@@ -84,4 +84,11 @@ export class ChessBoardComponent {
   isValidMove(rowIndex: number, colIndex: number): boolean {
     return this.game?.validMoves?.some(m => m.row === rowIndex && m.col === colIndex) ?? false;
   }
+
+  isCheckedKing(rowIndex: number, colIndex: number): boolean {
+    const piece = this.game.board[rowIndex][colIndex];
+    if (!piece || piece.type !== 'king') return false;
+    if (this.game.isInCheck(piece.player)) return true;
+    return false;
+  }
 }

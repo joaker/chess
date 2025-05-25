@@ -230,7 +230,7 @@ export class GameStateService {
     return true;
   }
 
-  private isInCheck(player: Player): boolean {
+  public isInCheck(player: Player): boolean {
     const kingPos = this.findKing(player);
     if (!kingPos) return false;
   

@@ -5,6 +5,7 @@
         (click)="activateTile(rowIndex, colIndex)">
         <img *ngIf="getImagePath(rowIndex, colIndex)" [src]="getImagePath(rowIndex, colIndex)!" alt="" class="piece" />
         <div *ngIf="isValidMove(rowIndex, colIndex)" class="dot"></div>
+        <div *ngIf="isCheckedKing(rowIndex, colIndex)" class="checked-king-warning"></div>
       </div>
     </div>
   </div>
