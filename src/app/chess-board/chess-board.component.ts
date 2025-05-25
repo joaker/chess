@@ -91,4 +91,11 @@ export class ChessBoardComponent {
     if (this.game.isInCheck(piece.player)) return true;
     return false;
   }
+
+  hasValidMoves(row: number, col: number): boolean {
+    const piece = this.game.board[row][col];
+    if (!piece || piece.player !== this.game.currentPlayer) return false;
+    const validMoves = this.game.calculateValidMoves(row, col);
+    return validMoves.length > 0;
+  }
 }

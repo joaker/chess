@@ -3,7 +3,7 @@
     <div *ngFor="let row of game.board; let rowIndex = index" class="row">
       <div *ngFor="let tile of row; let colIndex = index" class="tile" [ngClass]="getTileClass(rowIndex, colIndex)"
         (click)="activateTile(rowIndex, colIndex)">
-        <img *ngIf="getImagePath(rowIndex, colIndex)" [src]="getImagePath(rowIndex, colIndex)!" alt="" class="piece" />
+        <img *ngIf="getImagePath(rowIndex, colIndex)" [src]="getImagePath(rowIndex, colIndex)!" alt="" class="piece" [class.has-valid-moves]="hasValidMoves(rowIndex, colIndex)" />
         <div *ngIf="isValidMove(rowIndex, colIndex)" class="dot"></div>
         <div *ngIf="isCheckedKing(rowIndex, colIndex)" class="checked-king-warning"></div>
       </div>

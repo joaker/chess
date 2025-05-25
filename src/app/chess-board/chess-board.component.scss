@@ -38,6 +38,13 @@
     height: 80%;
     pointer-events: none;
     user-select: none;
+
+    opacity: 60%;
+
+    &.has-valid-moves {
+      opacity: 100%;
+    }
+
   }
 
   .dot {
@@ -56,7 +63,6 @@
     position: absolute;
   }
 }
-
 
 .grid-container {
   display: grid;

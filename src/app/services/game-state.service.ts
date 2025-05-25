@@ -262,7 +262,7 @@ export class GameStateService {
   }
   
 
-  private calculateValidMoves(row: number, col: number, ignoreKingSafety = false): Position[] {
+  public calculateValidMoves(row: number, col: number, ignoreKingSafety = false): Position[] {
     const piece = this.board[row][col];
     if (!piece) return [];
 
